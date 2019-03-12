@@ -17,7 +17,8 @@ import requests
 # Constants
 ROOT = 'https://bungie.net'
 APIKEY = os.environ.get('BUNGIE_API_KEY', None)
-MODIFIER = 4294967296
+SIZE = (402, 594)
+SLIVER = 23
 
 # Check that the apikey was passed
 if APIKEY is None:
@@ -119,11 +120,12 @@ def parse(clanId):
         'GonfalonColors',
         bannerData['gonfalonColorId']
     )
+    print('BG', colorToTuple(canvasColor))
 
     # Create the image canvas to draw on
     canvas = Image.new(
         mode='RGBA',
-        size=(402, 594),
+        size=SIZE,
         color=colorToTuple(canvasColor),
     )
 
@@ -143,6 +145,7 @@ def parse(clanId):
             bannerData['gonfalonDetailColorId']
         ),
     )
+    # gonfalonFg.save('./layer1.png')
     canvas = Image.alpha_composite(canvas, gonfalonFg)
 
     # Get the decal
@@ -161,6 +164,7 @@ def parse(clanId):
             bannerData['decalBackgroundColorId']
         ),
     )
+    # decalBg.save('./layer2.png')
     canvas = Image.alpha_composite(canvas, decalBg)
 
     # Paste the foreground decal in
@@ -172,7 +176,13 @@ def parse(clanId):
             bannerData['decalColorId']
         ),
     )
+    # decalFg.save('./layer3.png')
     canvas = Image.alpha_composite(canvas, decalFg)
+
+    # Crop off a sliver at the bottom
+    canvas = canvas.crop(
+        (0, 0, SIZE[0], SIZE[1] - SLIVER)
+    )
 
     # Finally, close the database connection and delete the file
     dbConnection.close()
